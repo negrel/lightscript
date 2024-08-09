@@ -1,5 +1,9 @@
 # `lightscript` - An embeddable system scripting language inspired by JavaScript and Lua.
 
+## Acknowledgments
+
+Lot of code is inspired from [Wren](https://wren.io).
+
 ## Contributing
 
 If you want to contribute to `lightscript` to add a feature or improve the code contact
