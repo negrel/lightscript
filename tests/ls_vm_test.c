@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <check.h>
@@ -16,6 +17,7 @@ START_TEST(test_vm_allocate) {
   // Internal state is ok.
   ck_assert_int_eq(vm->bytes_allocated, sizeof(char));
   ck_assert_int_eq(vm->next_gc, 0);
+  ck_assert_ptr_null(vm->first_obj);
 
   // Free pointer.
   ls_free(vm, c);

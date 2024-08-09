@@ -2,8 +2,15 @@
 #define LIGHT_VM_H_INCLUDE
 
 #include "lightscript.h"
+#include "ls_value.h"
 
 #define ls_allocate(vm, type) ls_reallocate((vm), NULL, 0, sizeof(type))
+// Use the VM's allocator to allocate an object of [main_type] containing a
+// flexible array of [count] objects of [array_type].
+#define ls_allocate_flex(vm, main_type, array_type, count)                     \
+  ((main_type *)ls_reallocate(                                                 \
+      (vm), NULL, 0, sizeof(main_type) + sizeof(array_type) * (count)))
+
 #define ls_free(vm, ptr) ls_reallocate((vm), ptr, sizeof(*ptr), 0)
 
 struct LsVM {
@@ -17,6 +24,10 @@ struct LsVM {
 
   // The number of total allocated bytes that will trigger the next GC.
   size_t next_gc;
+
+  // The first object in the linked list of all currently allocated objects.
+  // Objects are prepended on allocation.
+  LsObj *first_obj;
 };
 
 // A generic allocation function that handles all explicit memory management.
@@ -35,7 +46,16 @@ struct LsVM {
 //
 // - To free memory, [memory] will be the memory to free and [new_size] will be
 //   zero. It should return NULL.
-void *ls_reallocate(struct LsVM *vm, void *memory, size_t old_size,
-                    size_t new_size);
+void *ls_reallocate(LsVM *vm, void *memory, size_t old_size, size_t new_size);
+
+// Creates a new string object and copies [text] into it.
+//
+// [text] must be non-NULL.
+LsValue ls_new_string(LsVM *vm, const char *text);
+
+// Creates a new string object of [length] and copies [text] into it.
+//
+// [text] may be NULL if [length] is zero.
+LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length);
 
 #endif

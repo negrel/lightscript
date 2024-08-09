@@ -16,7 +16,13 @@ build() {
 
 tests() {
 	mkdir -p "$BUILD_DIR"
-	$CC $TEST_CFLAGS ./tests/ls_vm_test.c ./src/ls_vm.c -o "$BUILD_DIR/vm_test"
+
+	# VM tests.
+	$CC $TEST_CFLAGS ./tests/ls_vm_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/vm_test"
+	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
+
+	# String tests.
+	$CC $TEST_CFLAGS ./tests/ls_value_string_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/value_string_test"
 	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
 }
 

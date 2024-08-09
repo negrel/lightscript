@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -64,3 +65,37 @@ LsVM *ls_new_vm(LsConfiguration *config) {
 }
 
 void ls_free_vm(LsVM *vm) { ls_reallocate(vm, vm, 0, 0); }
+
+static void ls_obj_init(LsVM *vm, LsObj *obj, LsObjType type) {
+  assert(vm != NULL);
+  assert(obj != NULL);
+
+  obj->type = type;
+  obj->is_dark = false;
+  obj->next = vm->first_obj;
+  vm->first_obj = obj;
+}
+
+static LsObjString *ls_allocate_string(LsVM *vm, size_t length) {
+  LsObjString *str = ls_allocate_flex(vm, LsObjString, char, length + 1);
+  // TODO: handle oom.
+  ls_obj_init(vm, &str->obj, LS_OBJ_STRING);
+
+  str->length = length;
+  // str->value[length] = '\0';
+
+  return str;
+}
+
+LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length) {
+  LsObjString *str = ls_allocate_string(vm, length);
+
+  if (length > 0 && text != NULL)
+    memcpy(str->value, text, length);
+
+  return ls_obj2val(&str->obj);
+}
+
+LsValue ls_new_string(LsVM *vm, const char *text) {
+  return ls_new_string_length(vm, text, strlen(text));
+}
