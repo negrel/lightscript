@@ -1,3 +1,6 @@
+#ifndef LS_VALUE_H_INCLUDE
+#define LS_VALUE_H_INCLUDE
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -17,9 +20,9 @@
 #define LS_TAG_FALSE (2)
 #define LS_TAG_TRUE (3)
 
-#define LS_NULL ((Value)(uint64_t)(QNAN | TAG_NULL))
-#define LS_FALSE ((Value)(uint64_t)(QNAN | TAG_FALSE))
-#define LS_TRUE ((Value)(uint64_t)(QNAN | TAG_TRUE))
+#define LS_NULL ((LsValue)(uint64_t)(QNAN | LS_TAG_NULL))
+#define LS_FALSE ((LsValue)(uint64_t)(QNAN | LS_TAG_FALSE))
+#define LS_TRUE ((LsValue)(uint64_t)(QNAN | LS_TAG_TRUE))
 
 // An object pointer is a NaN with a set sign bit.
 #define ls_is_obj(value) (((value) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
@@ -120,3 +123,11 @@ LsValue ls_obj2val(LsObj *obj);
 // Convert a value into an object.
 // You must check that value is an object before calling this function.
 LsObj *ls_val2obj(LsValue value);
+
+// Returns true if [a] and [b] are strictly the same value. This is identity
+// for object values, and value equality for unboxed values.
+#define ls_val_same(a, b) ((a) == (b))
+
+bool ls_val_eq(LsValue a, LsValue b);
+
+#endif

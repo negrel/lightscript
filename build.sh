@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
 set -x
 
 CFLAGS="-std=c99 -Wall -Wextra -Werror -pedantic -Wmissing-prototypes -Wstrict-prototypes -I $PWD/inc/ -I $PWD/src/"
-TEST_CFLAGS="$CFLAGS $(pkg-config --cflags --libs check)"
+TEST_CFLAGS="$CFLAGS -g $(pkg-config --cflags --libs check)"
 : ${CC:="clang"}
 BUILD_DIR="build"
 

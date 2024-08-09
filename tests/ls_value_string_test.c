@@ -3,6 +3,7 @@
 
 #include <check.h>
 
+#include "ls_value.h"
 #include "ls_vm.h"
 
 START_TEST(test_new_string) {
@@ -37,11 +38,40 @@ START_TEST(test_new_string) {
 }
 END_TEST
 
+START_TEST(test_string_eq) {
+  LsVM *vm = ls_new_vm(NULL);
+
+  // Allocate a string.
+  LsValue strval = ls_new_string(vm, "Hello world!");
+  LsValue strval2 = ls_new_string(vm, "Hello world!");
+
+  // Equal to itself.
+  ck_assert(ls_val_same(strval, strval));
+  ck_assert(ls_val_eq(strval, strval));
+
+  // Not same but equal.
+  ck_assert(!ls_val_same(strval, strval2));
+  ck_assert(ls_val_eq(strval, strval2));
+
+  // Not same nor equal.
+  ck_assert(!ls_val_same(strval, LS_TRUE));
+  ck_assert(!ls_val_eq(strval, LS_TRUE));
+
+  // Free pointers.
+  ls_free(vm, ls_val2obj(strval));
+  ls_free(vm, ls_val2obj(strval2));
+
+  // Free VM.
+  ls_free_vm(vm);
+}
+END_TEST
+
 static Suite *alloc_suite(void) {
   Suite *s = suite_create("ls_vm");
   TCase *tc_core = tcase_create("Core");
 
   tcase_add_test(tc_core, test_new_string);
+  tcase_add_test(tc_core, test_string_eq);
   suite_add_tcase(s, tc_core);
 
   return s;
