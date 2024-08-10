@@ -35,6 +35,7 @@
 typedef enum {
   LS_OBJ_STRING,
   LS_OBJ_ARRAY,
+  LS_OBJ_MAP,
   LS_OBJ_TYPE_COUNT, // Must be last.
 } LsObjType;
 
@@ -147,6 +148,20 @@ typedef struct ls_obj_array {
   ValueBuffer elements;
 } LsObjArray;
 
+typedef struct {
+  LsValue key;
+  LsValue value;
+} MapEntry;
+
+typedef struct ls_obj_map {
+  LsObj obj;
+
+  size_t capacity;
+  size_t count;
+
+  MapEntry *entries;
+} LsObjMap;
+
 // Creates a new string object and copies [text] into it.
 //
 // [text] must be non-NULL.
@@ -159,5 +174,16 @@ LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length);
 
 // Creates a new array with [initial_length] LS_NULL elements.
 LsValue ls_new_array(LsVM *vm, size_t initial_length);
+
+LsValue ls_array_index(LsValue val);
+
+// Creates a new empty map.
+LsValue ls_new_map(LsVM *vm);
+
+// Converts [num] to an [LsValue].
+LsValue ls_num2val(double num);
+
+// Interprets [val] as a [double].
+double ls_val2num(LsValue val);
 
 #endif

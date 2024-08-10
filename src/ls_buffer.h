@@ -1,6 +1,8 @@
 #ifndef LS_BUFFER_H_INCLUDE
 #define LS_BUFFER_H_INCLUDE
 
+#include <stdint.h>
+
 #include "ls_alloc.h"
 
 // We need buffers of a few different types. To avoid lots of casting between
@@ -49,5 +51,7 @@
   void ls_##name##_buffer_write(LsVM *vm, Name##Buffer *buffer, type data) {   \
     ls_##name##_buffer_fill(vm, buffer, data, 1);                              \
   }
+
+DECLARE_BUFFER(Byte, byte, uint8_t);
 
 #endif

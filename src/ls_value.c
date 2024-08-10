@@ -63,7 +63,7 @@ bool ls_val_eq(LsValue a, LsValue b) {
   }
 }
 
-static void ls_obj_init(LsVM *vm, LsObj *obj, LsObjType type) {
+static void ls_init_obj(LsVM *vm, LsObj *obj, LsObjType type) {
   assert(vm != NULL);
   assert(obj != NULL);
 
@@ -94,7 +94,7 @@ void ls_free_obj(LsVM *vm, LsObj *obj) {
 static LsObjString *ls_allocate_string(LsVM *vm, size_t length) {
   LsObjString *str = ls_allocate_flex(vm, LsObjString, char, length + 1);
   // TODO: handle oom.
-  ls_obj_init(vm, &str->obj, LS_OBJ_STRING);
+  ls_init_obj(vm, &str->obj, LS_OBJ_STRING);
 
   str->length = length;
   str->value[length] = '\0';
@@ -117,9 +117,36 @@ LsValue ls_new_string(LsVM *vm, const char *text) {
 
 LsValue ls_new_array(LsVM *vm, size_t initial_length) {
   LsObjArray *arr = ls_allocate(vm, LsObjArray);
-  ls_obj_init(vm, &arr->obj, LS_OBJ_ARRAY);
+  ls_init_obj(vm, &arr->obj, LS_OBJ_ARRAY);
   ls_value_buffer_init(&arr->elements);
   ls_value_buffer_fill(vm, &arr->elements, LS_NULL, initial_length);
 
   return ls_obj2val(&arr->obj);
+}
+
+LsValue ls_new_map(LsVM *vm) {
+  LsObjMap *map = ls_allocate(vm, LsObjMap);
+  ls_init_obj(vm, &map->obj, LS_OBJ_MAP);
+  map->capacity = 0;
+  map->count = 0;
+  map->entries = NULL;
+  return ls_obj2val(&map->obj);
+}
+
+LsValue ls_num2val(double num) {
+  union {
+    double num;
+    LsValue val;
+  } u = {num};
+
+  return u.val;
+}
+
+double ls_val2num(LsValue val) {
+  union {
+    double num;
+    LsValue val;
+  } u = {val};
+
+  return u.num;
 }
