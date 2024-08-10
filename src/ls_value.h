@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ls_buffer.h"
+
 // A mask that selects the sign bit.
 #define SIGN_BIT ((uint64_t)1 << 63)
 
@@ -32,6 +34,7 @@
 // Identifies which specific type a heap-allocated object is.
 typedef enum {
   LS_OBJ_STRING,
+  LS_OBJ_ARRAY,
   LS_OBJ_TYPE_COUNT, // Must be last.
 } LsObjType;
 
@@ -45,6 +48,9 @@ typedef struct ls_obj {
   // The next object in the linked list of all currently allocated objects.
   struct ls_obj *next;
 } LsObj;
+
+// Releases all memory owned by [obj], including [obj] itself.
+void ls_free_obj(LsVM *vm, LsObj *obj);
 
 // NaN boxed value.
 // An IEEE 754 double-precision float is a 64-bit value with bits laid out
@@ -106,6 +112,24 @@ typedef struct ls_obj {
 // means math on numbers is fast.
 typedef uint64_t LsValue;
 
+// Convert an object into a value.
+LsValue ls_obj2val(LsObj *obj);
+
+// Convert a value into an object.
+// You must check that value is an object before calling this function.
+LsObj *ls_val2obj(LsValue value);
+
+// Returns true if [a] and [b] are strictly the same value. This is identity
+// for object values, and value equality for unboxed values.
+#define ls_val_same(a, b) ((a) == (b))
+
+// Returns true if [a] and [b] are equivalent. Immutable values (null, bools,
+// numbers, ranges, and strings) are equal if they have the same data. All
+// other values are equal if they are identical objects (e.g. ls_val_same).
+bool ls_val_eq(LsValue a, LsValue b);
+
+DECLARE_BUFFER(Value, value, LsValue);
+
 // A heap-allocated string object.
 typedef struct ls_obj_string {
   LsObj obj;
@@ -117,17 +141,23 @@ typedef struct ls_obj_string {
   char value[];
 } LsObjString;
 
-// Convert an object into a Value.
-LsValue ls_obj2val(LsObj *obj);
+typedef struct ls_obj_array {
+  LsObj obj;
 
-// Convert a value into an object.
-// You must check that value is an object before calling this function.
-LsObj *ls_val2obj(LsValue value);
+  ValueBuffer elements;
+} LsObjArray;
 
-// Returns true if [a] and [b] are strictly the same value. This is identity
-// for object values, and value equality for unboxed values.
-#define ls_val_same(a, b) ((a) == (b))
+// Creates a new string object and copies [text] into it.
+//
+// [text] must be non-NULL.
+LsValue ls_new_string(LsVM *vm, const char *text);
 
-bool ls_val_eq(LsValue a, LsValue b);
+// Creates a new string object of [length] and copies [text] into it.
+//
+// [text] may be NULL if [length] is zero.
+LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length);
+
+// Creates a new array with [initial_length] LS_NULL elements.
+LsValue ls_new_array(LsVM *vm, size_t initial_length);
 
 #endif

@@ -20,14 +20,4 @@ struct ls_vm {
   LsObj *first_obj;
 };
 
-// Creates a new string object and copies [text] into it.
-//
-// [text] must be non-NULL.
-LsValue ls_new_string(LsVM *vm, const char *text);
-
-// Creates a new string object of [length] and copies [text] into it.
-//
-// [text] may be NULL if [length] is zero.
-LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length);
-
 #endif

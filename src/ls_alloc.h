@@ -28,5 +28,9 @@ void *ls_reallocate(LsVM *vm, void *memory, size_t old_size, size_t new_size);
   ((main_type *)ls_reallocate(                                                 \
       (vm), NULL, 0, sizeof(main_type) + sizeof(array_type) * (count)))
 
+// Use the VM's allocator to allocate an array of [count] elements of [type].
+#define ls_allocate_array(vm, type, count)                                     \
+  ((type *)ls_reallocate(vm, NULL, 0, sizeof(type) * (count)))
+
 // Free ptr previously allocated using VM's allocator.
 #define ls_free(vm, ptr) ls_reallocate((vm), ptr, sizeof(*ptr), 0)

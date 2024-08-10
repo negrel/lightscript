@@ -12,7 +12,6 @@ START_TEST(test_new_string) {
   // Allocate a string.
   LsValue strval = ls_new_string(vm, "Hello world!");
   LsObj *strobj = ls_val2obj(strval);
-  (void)strobj;
 
   // Object is well initialized.
   ck_assert_int_eq(strobj->type, LS_OBJ_STRING);
@@ -58,8 +57,8 @@ START_TEST(test_string_eq) {
   ck_assert(!ls_val_eq(strval, LS_TRUE));
 
   // Free pointers.
-  ls_free(vm, ls_val2obj(strval));
-  ls_free(vm, ls_val2obj(strval2));
+  ls_free_obj(vm, ls_val2obj(strval));
+  ls_free_obj(vm, ls_val2obj(strval2));
 
   // Free VM.
   ls_free_vm(vm);
@@ -67,7 +66,7 @@ START_TEST(test_string_eq) {
 END_TEST
 
 static Suite *alloc_suite(void) {
-  Suite *s = suite_create("ls_vm");
+  Suite *s = suite_create("ls_string");
   TCase *tc_core = tcase_create("Core");
 
   tcase_add_test(tc_core, test_new_string);

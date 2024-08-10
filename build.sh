@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-set -x
+#set -x
 
 CFLAGS="-std=c99 -Wall -Wextra -Werror -pedantic -Wmissing-prototypes -Wstrict-prototypes -I $PWD/inc/ -I $PWD/src/"
 TEST_CFLAGS="$CFLAGS -g $(pkg-config --cflags --libs check)"
@@ -24,6 +24,10 @@ tests() {
 
 	# String tests.
 	$CC $TEST_CFLAGS ./tests/ls_value_string_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/value_string_test"
+	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
+
+	# Array tests.
+	$CC $TEST_CFLAGS ./tests/ls_value_array_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/value_string_test"
 	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
 }
 

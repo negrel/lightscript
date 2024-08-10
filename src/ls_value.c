@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "ls_value.h"
+#include "ls_vm.h"
 #include "string.h"
 
 DEFINE_BUFFER(Value, value, LsValue)
@@ -47,9 +48,78 @@ bool ls_val_eq(LsValue a, LsValue b) {
     break;
   }
 
+  case LS_OBJ_ARRAY: {
+    LsObjArray *arrA = (LsObjArray *)objA;
+    LsObjArray *arrB = (LsObjArray *)objB;
+    return arrA->elements.length == arrB->elements.length &&
+           memcmp(arrA->elements.data, arrB->elements.data,
+                  arrA->elements.length) == 0;
+  }
+
   default:
     // All other types are only equal if they are same, which they aren't if
     // we get here.
     return false;
   }
+}
+
+static void ls_obj_init(LsVM *vm, LsObj *obj, LsObjType type) {
+  assert(vm != NULL);
+  assert(obj != NULL);
+
+  obj->type = type;
+  obj->is_dark = false;
+  obj->next = vm->first_obj;
+  vm->first_obj = obj;
+}
+
+void ls_free_obj(LsVM *vm, LsObj *obj) {
+  assert(vm != NULL);
+  assert(obj != NULL);
+
+  switch (obj->type) {
+  case LS_OBJ_ARRAY: {
+    LsObjArray *arr = (LsObjArray *)obj;
+    ls_value_buffer_clear(vm, &arr->elements);
+    break;
+  }
+
+  default:
+    break;
+  }
+
+  ls_free(vm, obj);
+}
+
+static LsObjString *ls_allocate_string(LsVM *vm, size_t length) {
+  LsObjString *str = ls_allocate_flex(vm, LsObjString, char, length + 1);
+  // TODO: handle oom.
+  ls_obj_init(vm, &str->obj, LS_OBJ_STRING);
+
+  str->length = length;
+  str->value[length] = '\0';
+
+  return str;
+}
+
+LsValue ls_new_string_length(LsVM *vm, const char *text, size_t length) {
+  LsObjString *str = ls_allocate_string(vm, length);
+
+  if (length > 0 && text != NULL)
+    memcpy(str->value, text, length);
+
+  return ls_obj2val(&str->obj);
+}
+
+LsValue ls_new_string(LsVM *vm, const char *text) {
+  return ls_new_string_length(vm, text, strlen(text));
+}
+
+LsValue ls_new_array(LsVM *vm, size_t initial_length) {
+  LsObjArray *arr = ls_allocate(vm, LsObjArray);
+  ls_obj_init(vm, &arr->obj, LS_OBJ_ARRAY);
+  ls_value_buffer_init(&arr->elements);
+  ls_value_buffer_fill(vm, &arr->elements, LS_NULL, initial_length);
+
+  return ls_obj2val(&arr->obj);
 }
