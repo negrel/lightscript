@@ -4,7 +4,7 @@ set -euo pipefail
 #set -x
 
 CFLAGS="-std=c99 -Wall -Wextra -Werror -pedantic -Wmissing-prototypes -Wstrict-prototypes -I $PWD/inc/ -I $PWD/src/"
-TEST_CFLAGS="$CFLAGS -g $(pkg-config --cflags --libs check)"
+TEST_CFLAGS="$CFLAGS -g -DDEBUG $(pkg-config --cflags --libs check)"
 : ${CC:="clang"}
 BUILD_DIR="build"
 
@@ -18,16 +18,8 @@ build() {
 tests() {
 	mkdir -p "$BUILD_DIR"
 
-	# VM tests.
-	$CC $TEST_CFLAGS ./tests/ls_vm_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/vm_test"
-	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
-
-	# String tests.
-	$CC $TEST_CFLAGS ./tests/ls_value_string_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/value_string_test"
-	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
-
-	# Array tests.
-	$CC $TEST_CFLAGS ./tests/ls_value_array_test.c ./src/ls_vm.c ./src/ls_value.c -o "$BUILD_DIR/value_string_test"
+	# Lexer tests.
+	$CC $TEST_CFLAGS ./tests/lex.c ./src/lex.h ./src/lex.c -o "$BUILD_DIR/value_string_test"
 	valgrind --quiet --leak-check=full --errors-for-leak-kinds=definite $_
 }
 
