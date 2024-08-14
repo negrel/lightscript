@@ -14,6 +14,8 @@ typedef enum {
   TOKEN_SLASH,
   TOKEN_STAR,
 
+  TOKEN_LT,
+
   TOKEN_SEMICOLON,
 
   TOKEN_IDENT,

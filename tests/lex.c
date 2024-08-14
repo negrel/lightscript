@@ -8,7 +8,7 @@
 static void test_lex_string(const char *tcase, const char *source,
                             const Token *expected) {
   (void)tcase;
-  log_debug("====== %s ====== ...\n", tcase);
+  log_debug("====== %s ====== ...\n", tcase != NULL ? tcase : source);
 
   Lexer l = {0};
   lexer_init(&l, source);
@@ -28,7 +28,7 @@ static void test_lex_string(const char *tcase, const char *source,
     tk = lex(&l);
   } while (1);
 
-  log_debug("====== %s ====== OK\n", tcase);
+  log_debug("====== %s ====== OK\n", tcase != NULL ? tcase : source);
 }
 
 START_TEST(test_lex_number) {
@@ -93,7 +93,7 @@ START_TEST(test_lex_number) {
 END_TEST
 
 START_TEST(test_lex_number_op) {
-  test_lex_string("100 - 100", "100 - 100",
+  test_lex_string(NULL, "100 - 100",
                   (Token[]){
                       {TOKEN_NUMBER, "100", 3, 1, 100},
                       {TOKEN_MINUS, "-", 1, 1, LS_NULL},
@@ -101,9 +101,17 @@ START_TEST(test_lex_number_op) {
                       {TOKEN_EOF, "\0", 1, 1, LS_NULL},
                   });
 
-  test_lex_string("100 -100", "100 -100",
+  test_lex_string(NULL, "100 -100",
                   (Token[]){
                       {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_MINUS, "-", 1, 1, LS_NULL},
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+  test_lex_string(NULL, "100 + -100",
+                  (Token[]){
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_PLUS, "+", 1, 1, LS_NULL},
                       {TOKEN_NUMBER, "-100", 4, 1, -100},
                       {TOKEN_EOF, "\0", 1, 1, LS_NULL},
                   });
@@ -163,6 +171,17 @@ START_TEST(test_lex_block_comment) {
 }
 END_TEST
 
+START_TEST(test_lex_comparison) {
+  test_lex_string(NULL, "100 < 110",
+                  (Token[]){
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_LT, "<", 1, 1, LS_NULL},
+                      {TOKEN_NUMBER, "110", 3, 1, 110},
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+}
+END_TEST
+
 static Suite *alloc_suite(void) {
   Suite *s = suite_create("lex");
   TCase *tc_core = tcase_create("Core");
@@ -171,6 +190,7 @@ static Suite *alloc_suite(void) {
   tcase_add_test(tc_core, test_lex_number_op);
   tcase_add_test(tc_core, test_lex_line_comment);
   tcase_add_test(tc_core, test_lex_block_comment);
+  tcase_add_test(tc_core, test_lex_comparison);
   suite_add_tcase(s, tc_core);
 
   return s;

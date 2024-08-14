@@ -212,13 +212,17 @@ Token lex(Lexer *l) {
       prepare_token(l, TOKEN_LINE);
       break;
 
+    case '<':
+      prepare_token(l, TOKEN_LT);
+      break;
+
     case '+':
       prepare_token(l, TOKEN_PLUS);
       break;
 
       // Negative number and minus.
     case '-':
-      if (isdigit(peek_char(l)))
+      if (isdigit(peek_char(l)) && l->current.type != TOKEN_NUMBER)
         lex_number(l);
       else
         prepare_token(l, TOKEN_MINUS);
