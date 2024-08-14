@@ -131,6 +131,40 @@ static inline void lex_number(Lexer *l) {
   prepare_number_token(l, 10);
 }
 
+static void skip_line_comment(Lexer *l) {
+  while (peek_char(l) != '\n' && peek_char(l) != '\0') {
+    next_char(l);
+  }
+}
+
+static bool skip_block_comment(Lexer *l) {
+  unsigned int nesting = 1;
+
+  while (nesting > 0) {
+    if (peek_char(l) == '\0') {
+      prepare_token(l, TOKEN_ERROR);
+      l->next.value = LEXERR_UNTERMINATED_BLOCK_COMMENT;
+      return true;
+    }
+
+    if (peek_char(l) == '/' && peek_next_char(l) == '*') {
+      next_char(l);
+      next_char(l);
+      nesting++;
+      continue;
+    } else if (peek_char(l) == '*' && peek_next_char(l) == '/') {
+      next_char(l);
+      next_char(l);
+      nesting--;
+      continue;
+    }
+
+    next_char(l);
+  }
+
+  return false;
+}
+
 // Lex a single token and returns it.
 Token lex(Lexer *l) {
   l->prev = l->current;
@@ -150,6 +184,25 @@ Token lex(Lexer *l) {
     case '\t':
     case ' ':
       continue;
+
+      // Comments
+    case '/':
+      if (next_char_if_match(l, '/')) {
+        skip_line_comment(l);
+        continue;
+      } else if (next_char_if_match(l, '*')) {
+        if (skip_block_comment(l)) {
+          break;
+        }
+        continue;
+      }
+
+      prepare_token(l, TOKEN_SLASH);
+      break;
+
+    case '*':
+      prepare_token(l, TOKEN_STAR);
+      break;
 
     case ';':
       prepare_token(l, TOKEN_SEMICOLON);

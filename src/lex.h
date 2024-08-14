@@ -6,8 +6,13 @@
 #include "value.h"
 
 typedef enum {
+  TOKEN_LPAREN,
+  TOKEN_RPAREN,
+
   TOKEN_PLUS,
   TOKEN_MINUS,
+  TOKEN_SLASH,
+  TOKEN_STAR,
 
   TOKEN_SEMICOLON,
 
@@ -41,6 +46,7 @@ typedef struct {
 typedef enum {
   LEXERR_INVALID_NUM,
   LEXERR_INVALID_NUM_RANGE,
+  LEXERR_UNTERMINATED_BLOCK_COMMENT,
 } LexError;
 
 typedef struct {

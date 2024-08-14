@@ -110,12 +110,67 @@ START_TEST(test_lex_number_op) {
 }
 END_TEST
 
+START_TEST(test_lex_line_comment) {
+  test_lex_string("regular line comment",
+                  "// Foo bar baz 100 + 100 // extra foo",
+                  (Token[]){
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+  test_lex_string("line comment at end of line",
+                  "100 + 100 // Foo bar baz 100 + 100 // extra foo",
+                  (Token[]){
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_PLUS, "+", 1, 1, LS_NULL},
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+}
+END_TEST
+
+START_TEST(test_lex_block_comment) {
+  test_lex_string("single line block comment",
+                  "/* Foo bar baz 100 + 100 // extra foo */",
+                  (Token[]){
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+  test_lex_string("inline block comment between numbers", "100 * /* PI */ 3.14",
+                  (Token[]){
+                      {TOKEN_NUMBER, "100", 3, 1, 100},
+                      {TOKEN_STAR, "*", 1, 1, LS_NULL},
+                      {TOKEN_NUMBER, "3.14", 4, 1, 3.14},
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+  test_lex_string("nested block comments", "/* a /* nested */ comment */",
+                  (Token[]){
+                      {TOKEN_EOF, "\0", 1, 1, LS_NULL},
+                  });
+  test_lex_string("multiline block comment",
+                  "/* a comment \n that is spread \n over multiple lines */",
+                  (Token[]){
+                      {TOKEN_EOF, "\0", 1, 3, LS_NULL},
+                  });
+  test_lex_string("non closed block comment",
+                  "/* a comment that is not closed...",
+                  (Token[]){
+                      {
+                          TOKEN_ERROR,
+                          "/* a comment that is not closed...",
+                          34,
+                          1,
+                          LEXERR_UNTERMINATED_BLOCK_COMMENT,
+                      },
+                  });
+}
+END_TEST
+
 static Suite *alloc_suite(void) {
   Suite *s = suite_create("lex");
   TCase *tc_core = tcase_create("Core");
 
   tcase_add_test(tc_core, test_lex_number);
   tcase_add_test(tc_core, test_lex_number_op);
+  tcase_add_test(tc_core, test_lex_line_comment);
+  tcase_add_test(tc_core, test_lex_block_comment);
   suite_add_tcase(s, tc_core);
 
   return s;
